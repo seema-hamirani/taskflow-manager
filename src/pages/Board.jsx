@@ -7,7 +7,7 @@ import { setTasks, addTask, deleteTask, updateTask, moveTask } from "../features
 import { DragDropContext, Droppable, Draggable } from "@hello-pangea/dnd"
 import Navbar from "../components/Navbar"
 import Loader from "../components/Loader"
-import { FiPlus, FiTrash2, FiArrowLeft, FiFlag, FiCalendar } from "react-icons/fi"
+import { FiPlus, FiTrash2, FiArrowLeft, FiFlag, FiCalendar, FiEdit2 } from "react-icons/fi"
 import toast from "react-hot-toast"
 
 const COLUMNS = [
@@ -32,6 +32,8 @@ function Board() {
   const boardTasks = tasks[boardId] || []
 
   const [loading, setLoading] = useState(true)
+
+  // Add Task Modal
   const [showModal, setShowModal] = useState(false)
   const [modalColumn, setModalColumn] = useState("todo")
   const [taskTitle, setTaskTitle] = useState("")
@@ -39,6 +41,15 @@ function Board() {
   const [taskPriority, setTaskPriority] = useState("medium")
   const [taskDueDate, setTaskDueDate] = useState("")
   const [creating, setCreating] = useState(false)
+
+  // Edit Task Modal
+  const [showEditModal, setShowEditModal] = useState(false)
+  const [editingTask, setEditingTask] = useState(null)
+  const [editTitle, setEditTitle] = useState("")
+  const [editDesc, setEditDesc] = useState("")
+  const [editPriority, setEditPriority] = useState("medium")
+  const [editDueDate, setEditDueDate] = useState("")
+  const [editing, setEditing] = useState(false)
 
   useEffect(() => {
     fetchTasks()
@@ -94,6 +105,45 @@ function Board() {
     }
   }
 
+  // Open edit modal with task data
+  const openEditModal = (task) => {
+    setEditingTask(task)
+    setEditTitle(task.title)
+    setEditDesc(task.description || "")
+    setEditPriority(task.priority || "medium")
+    setEditDueDate(task.dueDate || "")
+    setShowEditModal(true)
+  }
+
+  // Save edited task
+  const handleEditTask = async (e) => {
+    e.preventDefault()
+    if (!editTitle.trim()) return
+    setEditing(true)
+    try {
+      const updatedTask = {
+        ...editingTask,
+        title: editTitle.trim(),
+        description: editDesc.trim(),
+        priority: editPriority,
+        dueDate: editDueDate,
+      }
+      await updateDoc(doc(db, "tasks", editingTask.id), {
+        title: editTitle.trim(),
+        description: editDesc.trim(),
+        priority: editPriority,
+        dueDate: editDueDate,
+      })
+      dispatch(updateTask({ boardId, task: updatedTask }))
+      toast.success("Task updated!")
+      setShowEditModal(false)
+      setEditingTask(null)
+    } catch (err) {
+      toast.error("Failed to update task")
+    }
+    setEditing(false)
+  }
+
   const handleDragEnd = async (result) => {
     if (!result.destination) return
     const { draggableId, destination } = result
@@ -128,9 +178,7 @@ function Board() {
             <FiArrowLeft size={20} className="text-gray-600" />
           </button>
           <div>
-            <h1 className="text-2xl font-bold text-gray-900">
-              {board?.title || "Board"}
-            </h1>
+            <h1 className="text-2xl font-bold text-gray-900">{board?.title || "Board"}</h1>
             <p className="text-gray-500 text-sm">{boardTasks.length} tasks total</p>
           </div>
         </div>
@@ -162,13 +210,22 @@ function Board() {
                             {(provided, snapshot) => (
                               <div ref={provided.innerRef} {...provided.draggableProps} {...provided.dragHandleProps}
                                 className={`bg-white rounded-xl p-4 shadow-sm group ${snapshot.isDragging ? "shadow-lg rotate-1" : ""}`}>
+
                                 <div className="flex items-start justify-between gap-2">
                                   <p className="text-sm font-medium text-gray-800 flex-1">{task.title}</p>
-                                  <button onClick={() => handleDeleteTask(task.id)}
-                                    className="opacity-0 group-hover:opacity-100 transition-opacity">
-                                    <FiTrash2 size={14} className="text-gray-400 hover:text-red-500" />
-                                  </button>
+                                  {/* Edit and Delete buttons */}
+                                  <div className="flex items-center gap-1 opacity-0 group-hover:opacity-100 transition-opacity">
+                                    <button onClick={() => openEditModal(task)}
+                                      className="p-1 hover:bg-indigo-50 rounded-lg transition-colors">
+                                      <FiEdit2 size={13} className="text-indigo-400 hover:text-indigo-600" />
+                                    </button>
+                                    <button onClick={() => handleDeleteTask(task.id)}
+                                      className="p-1 hover:bg-red-50 rounded-lg transition-colors">
+                                      <FiTrash2 size={13} className="text-gray-400 hover:text-red-500" />
+                                    </button>
+                                  </div>
                                 </div>
+
                                 {task.description && (
                                   <p className="text-xs text-gray-500 mt-1 line-clamp-2">{task.description}</p>
                                 )}
@@ -207,6 +264,7 @@ function Board() {
         )}
       </div>
 
+      {/* Add Task Modal */}
       {showModal && (
         <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 px-4">
           <div className="bg-white rounded-2xl p-6 w-full max-w-md shadow-xl">
@@ -242,6 +300,49 @@ function Board() {
                 <button type="submit" disabled={creating}
                   className="flex-1 py-2.5 bg-indigo-600 hover:bg-indigo-700 text-white rounded-xl font-medium transition-colors disabled:opacity-50">
                   {creating ? "Adding..." : "Add Task"}
+                </button>
+              </div>
+            </form>
+          </div>
+        </div>
+      )}
+
+      {/* Edit Task Modal */}
+      {showEditModal && (
+        <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 px-4">
+          <div className="bg-white rounded-2xl p-6 w-full max-w-md shadow-xl">
+            <h2 className="text-xl font-bold text-gray-900 mb-4">Edit Task</h2>
+            <form onSubmit={handleEditTask} className="space-y-4">
+              <input type="text" value={editTitle} onChange={(e) => setEditTitle(e.target.value)}
+                placeholder="Task title..." autoFocus required
+                className="w-full px-4 py-3 border border-gray-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-indigo-500 text-sm" />
+              <textarea value={editDesc} onChange={(e) => setEditDesc(e.target.value)}
+                placeholder="Description (optional)" rows={3}
+                className="w-full px-4 py-3 border border-gray-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-indigo-500 text-sm resize-none" />
+              <div className="grid grid-cols-2 gap-3">
+                <div>
+                  <label className="block text-xs font-medium text-gray-600 mb-1">Priority</label>
+                  <select value={editPriority} onChange={(e) => setEditPriority(e.target.value)}
+                    className="w-full px-3 py-2 border border-gray-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-indigo-500 text-sm">
+                    {PRIORITIES.map((p) => (
+                      <option key={p.value} value={p.value}>{p.label}</option>
+                    ))}
+                  </select>
+                </div>
+                <div>
+                  <label className="block text-xs font-medium text-gray-600 mb-1">Due Date</label>
+                  <input type="date" value={editDueDate} onChange={(e) => setEditDueDate(e.target.value)}
+                    className="w-full px-3 py-2 border border-gray-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-indigo-500 text-sm" />
+                </div>
+              </div>
+              <div className="flex gap-3 pt-2">
+                <button type="button" onClick={() => setShowEditModal(false)}
+                  className="flex-1 py-2.5 border border-gray-200 rounded-xl text-gray-600 hover:bg-gray-50 font-medium transition-colors">
+                  Cancel
+                </button>
+                <button type="submit" disabled={editing}
+                  className="flex-1 py-2.5 bg-indigo-600 hover:bg-indigo-700 text-white rounded-xl font-medium transition-colors disabled:opacity-50">
+                  {editing ? "Saving..." : "Save Changes"}
                 </button>
               </div>
             </form>
