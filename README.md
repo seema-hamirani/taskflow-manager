@@ -2,7 +2,6 @@
 
 A Trello-inspired Task Management App built with React, Redux Toolkit, Firebase and Tailwind CSS.
 
-🔗 **Live Demo:** [taskflow-manager.vercel.app](https://taskflow-manager.vercel.app)
 
 ---
 
