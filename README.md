@@ -1,16 +1,57 @@
-# React + Vite
+# Task Flow Manager
 
-This template provides a minimal setup to get React working in Vite with HMR and some ESLint rules.
+A Trello-inspired Task Management App built with React, Redux Toolkit, Firebase and Tailwind CSS.
 
-Currently, two official plugins are available:
+🔗 **Live Demo:** [taskflow-manager.vercel.app](https://taskflow-manager.vercel.app)
 
-- [@vitejs/plugin-react](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react) uses [Oxc](https://oxc.rs)
-- [@vitejs/plugin-react-swc](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react-swc) uses [SWC](https://swc.rs/)
+---
 
-## React Compiler
+## Features
 
-The React Compiler is not enabled on this template because of its impact on dev & build performances. To add it, see [this documentation](https://react.dev/learn/react-compiler/installation).
+- Login with Email or Google
+- Create and delete boards
+- Add, edit and delete tasks
+- Drag and drop tasks between columns
+- Real-time sync with Firebase
+- Fully responsive design
 
-## Expanding the ESLint configuration
+---
 
-If you are developing a production application, we recommend using TypeScript with type-aware lint rules enabled. Check out the [TS template](https://github.com/vitejs/vite/tree/main/packages/create-vite/template-react-ts) for information on how to integrate TypeScript and [`typescript-eslint`](https://typescript-eslint.io) in your project.
+## Tech Stack
+
+- React + Vite
+- Redux Toolkit
+- Firebase Auth + Firestore
+- Tailwind CSS
+- React Router v6
+- Framer Motion
+
+---
+
+## Getting Started
+
+```bash
+git clone https://github.com/seema-hamirani/taskflow-manager.git
+cd taskflow-manager
+npm install
+npm run dev
+```
+
+Add your Firebase config in `.env` file:
+
+```
+VITE_FIREBASE_API_KEY=your_key
+VITE_FIREBASE_AUTH_DOMAIN=your_domain
+VITE_FIREBASE_PROJECT_ID=your_project_id
+VITE_FIREBASE_STORAGE_BUCKET=your_bucket
+VITE_FIREBASE_MESSAGING_SENDER_ID=your_sender_id
+VITE_FIREBASE_APP_ID=your_app_id
+```
+
+---
+
+## Author
+
+**Seema Hamirani**
+- GitHub: [@seema-hamirani](https://github.com/seema-hamirani)
+- LinkedIn: [linkedin.com/in/your-linkedin](www.linkedin.com/in/seema-hamirani)
